@@ -6,72 +6,65 @@ use ggez::*;
 
 use glam::*;
 
+mod ant;
+mod anthill;
+
 const WIDTH: u16 = 1280;
 const HEIGHT: u16 = 600;
 const INICIAL_ANTS: usize = 1;
 
-struct Ant {
-    position: Vec2,
-    velocity: Vec2,
-}
-
-impl Ant {
-    fn new(inicial_position: Vec2) -> Ant {
-        Ant {
-            position: inicial_position,
-            velocity: Vec2::new(5.0, 5.0),
-        }
-    }
-}
 
 struct MyGame {
     max_x: f32,
     max_y: f32,
-    ants: Vec<Ant>,
+    ants: Vec<ant::Ant>,
+    anthill: anthill::Anthill,
     ant_texture: Image,
+    anthill_texture: Image,
 }
 
 impl MyGame {
     fn new(ctx: &mut Context) -> ggez::GameResult<MyGame> {
-        let ant_texture = Image::new(ctx, "/player.png")?;
+        let ant_texture = Image::new(ctx, "/ant.png")?;
+        let anthill_texture = Image::new(ctx, "/anthill.png")?;
         let mut ants = Vec::with_capacity(INICIAL_ANTS);
         let max_x = (WIDTH - ant_texture.width()) as f32;
         let max_y = (HEIGHT - ant_texture.height()) as f32;
 
-        println!("Max_x: {}, width: {}", max_x, WIDTH);
+        let inicial_position = Vec2::new(400.0, 400.0);
+
+        let anthill = anthill::Anthill::new(Vec2::new(inicial_position.x - anthill_texture.width() as f32, inicial_position.y - ant_texture.height() as f32));
 
         for _ in 0..INICIAL_ANTS {
-            ants.push(Ant::new(Vec2::new(400.0, 400.0)));
+            ants.push(ant::Ant::new(inicial_position));
         }
 
         Ok(MyGame {
             max_x,
             max_y,
             ants,
+            anthill,
             ant_texture,
+            anthill_texture
         })
     }
 }
 
 impl event::EventHandler for MyGame {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
+
         for ant in &mut self.ants {
-            ant.position += ant.velocity;
-            if ant.position.x > self.max_x || ant.position.x < 0.0 {
-                ant.velocity *= Vec2::new(-1.0, 1.0);
-            }
-            if ant.position.y > self.max_y || ant.position.y < 0.0 {
-                ant.velocity *= Vec2::new(1.0, -1.0);
-            }
+            ant.tick(self.max_x, self.max_y);
         }
 
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, Color::from((0.392, 0.584, 0.929)));
-        for ant in &self.ants {
-            graphics::draw(ctx, &self.ant_texture, (ant.position,))?;
+        graphics::clear(ctx, Color::from((183.0/255.0, 156.0/255.0, 115.0/255.0)));
+        graphics::draw(ctx, &self.anthill_texture, (self.anthill.get_position(),))?;
+        for ant in &mut self.ants {
+            graphics::draw(ctx, &self.ant_texture, (ant.get_position(),))?;
         }
 
         graphics::set_window_title(ctx, "Ant simulator");
@@ -79,6 +72,8 @@ impl event::EventHandler for MyGame {
 
         Ok(())
     }
+
+    // events come here
 }
 
 fn main() -> GameResult {
