@@ -12,3 +12,4 @@ glam = { version = "0.14", features = ["mint"]}
 glutin = "0.26"
 winit = "0.24"
 image = {version = "0.23", default-features = false, features = ["gif", "png", "pnm", "tga", "tiff", "webp", "bmp", "dxt", ] }
+rand = "0.8.3"
